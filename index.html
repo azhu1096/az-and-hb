@@ -43,6 +43,21 @@
     text-transform: uppercase;
     color: #a59c88;
   }
+  header p.rsvp-link {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(14px, 1.8vw, 17px);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: #c8b981;
+    margin: 0 0 14px;
+    font-style: italic;
+  }
+  header p.rsvp-link a {
+    color: #e8cf86;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  header p.rsvp-link a:hover { color: #f2dfa0; }
 
   .stage {
     display: flex;
@@ -404,6 +419,7 @@
 
 <header>
   <h1>We&rsquo;d love you to celebrate with us!</h1>
+  <p class="rsvp-link">View all details and RSVP here <a href="https://withjoy.com/allen-z-and-holly" target="_blank" rel="noopener">withjoy.com/allen-z-and-holly</a></p>
   <p>Tap an envelope to open</p>
 </header>
 
@@ -499,9 +515,18 @@
     closeBtn.classList.add('visible');
     hint.classList.add('visible');
 
-    // Smoothly scroll the envelope into view so the emerging card is visible
+    // Smoothly scroll so the popped-out card is fully visible above the envelope
     setTimeout(() => {
-      outer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const isMobile = window.matchMedia('(max-width: 520px)').matches;
+      const rect = outer.getBoundingClientRect();
+      const outerTopDoc = rect.top + window.scrollY;
+      if (isMobile) {
+        // Place envelope near the bottom of viewport so the scaled card has room above
+        const target = outerTopDoc - window.innerHeight * 0.55;
+        window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+      } else {
+        outer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }, 50);
   }
 
