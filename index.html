@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wedding Invitations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    font-family: "Inter", system-ui, sans-serif;
+    background:
+      radial-gradient(ellipse at 50% 0%, #2d262d 0%, #1a151a 60%, #0c090c 100%);
+    color: #e8e3d8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  header {
+    text-align: center;
+    padding: 48px 20px 8px;
+    position: relative;
+    z-index: 5;
+  }
+  header h1 {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(30px, 4.5vw, 48px);
+    margin: 0 0 6px;
+    color: #e8cf86;
+    letter-spacing: 0.02em;
+  }
+  header p {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: #a59c88;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    padding: 40px 20px 80px;
+  }
+
+  /* ============= WrapperContainer ============= */
+  .envelope-outer {
+    --env-w: 460px;
+    --env-h: 329px;   /* 0.714 * 460 */
+    --card-w: 400px;
+    --card-h: 560px;  /* 5:7 portrait */
+
+    --closed-h: calc(var(--env-h) + 100px);
+    --open-h:   calc(var(--card-h) + var(--env-h) + 140px);
+
+    width: calc(var(--env-w) + 40px);
+    height: var(--closed-h);
+    overflow: hidden;
+    position: relative;
+    transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .envelope-outer.active { height: var(--open-h); z-index: 100; }
+
+  @media (max-width: 520px) {
+    .envelope-outer {
+      --env-w: min(420px, calc(100vw - 40px));
+      --env-h: calc(0.714 * var(--env-w));
+      --card-w: calc(var(--env-w) - 60px);
+      --card-h: calc(var(--card-w) * 1.4);  /* 7/5 */
+    }
+  }
+
+  /* EnvelopePositioner */
+  .envelope-positioner {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* ============= EnvelopeContainer ============= */
+  .envelope-container {
+    position: relative;
+    width: var(--env-w);
+    margin-top: 20px;
+    transition: margin-top 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    animation: wiggle 2s infinite;
+  }
+  .envelope-container.open {
+    margin-top: calc(var(--card-h) + 80px);
+    animation: none;
+  }
+  .envelope-container:hover:not(.open) { animation: none; }
+
+  @keyframes wiggle {
+    0%   { transform: rotate(0deg); }
+    10%  { transform: rotate(-1deg); }
+    15%  { transform: rotate(0.5deg); }
+    20%  { transform: rotate(0); }
+    22%  { transform: rotate(-0.2deg); }
+    23%  { transform: rotate(0); }
+    30%  { transform: rotate(-0.1deg); }
+    35%  { transform: rotate(0.5deg); }
+    40%  { transform: rotate(0); }
+    42%  { transform: rotate(-0.2deg); }
+    43%  { transform: rotate(0); }
+    44%  { transform: rotate(0.1deg); }
+    45%  { transform: rotate(0); }
+    100% { transform: rotate(0); }
+  }
+
+  .envelope-back {
+    position: relative;
+    width: var(--env-w);
+    height: var(--env-h);
+    background: var(--back-color);
+    cursor: pointer;
+    transition: width 0.2s, height 0.2s;
+  }
+  .envelope-container:hover:not(.open) .envelope-back {
+    width: calc(var(--env-w) - 2px);
+    height: calc(var(--env-h) + 2px);
+  }
+
+  /* Flap */
+  .flap {
+    position: absolute;
+    width: 100%; height: 100%;
+    top: 0; left: 0;
+    background: var(--closed-color);
+    clip-path: polygon(0% 0%, 0% 4%, 5% 40%, 95% 40%, 100% 4%, 100% 0%);
+    transform-origin: top;
+    transform: rotateX(0);
+    transition: all 0.4s;
+    z-index: 400;
+    cursor: pointer;
+  }
+  .envelope-container.open .flap {
+    transform: rotateX(180deg);
+    background: var(--open-color);
+    z-index: 0;
+  }
+  .envelope-container:hover:not(.open) .flap {
+    transform: rotateX(120deg);
+    background: var(--hover-color);
+  }
+
+  .flap-texture {
+    position: absolute;
+    width: 100%; height: 100%;
+    top: 0; left: 0;
+    clip-path: polygon(0% 0%, 0% 4%, 5% 40%, 95% 40%, 100% 4%, 100% 0%);
+    transform-origin: top;
+    transform: rotateX(0);
+    transition: all 0.4s;
+    z-index: 401;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><filter id="n"><feTurbulence baseFrequency="1.2" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 0.2  0 0 0 0 0.18  0 0 0 0 0.15  0 0 0 0.45 0"/></filter><rect width="120" height="120" filter="url(%23n)"/></svg>');
+    opacity: 0.28;
+    pointer-events: none;
+  }
+  .envelope-container.open .flap-texture {
+    transform: rotateX(180deg);
+    z-index: 1;
+  }
+  .envelope-container:hover:not(.open) .flap-texture {
+    transform: rotateX(120deg);
+  }
+
+  .side-left {
+    position: absolute;
+    width: 100%; height: 100%;
+    background: var(--side-color);
+    clip-path: polygon(0% 1%, 8% 3%, 8% 100%, 0% 100%);
+    z-index: 200;
+    cursor: pointer;
+  }
+  .side-right {
+    position: absolute;
+    width: 100%; height: 100%;
+    background: var(--side-color);
+    clip-path: polygon(100% 1%, 92% 3%, 92% 100%, 100% 100%);
+    z-index: 200;
+    cursor: pointer;
+  }
+
+  .pocket {
+    position: absolute;
+    width: 100%; height: 100%;
+    background: var(--bottom-color);
+    clip-path: polygon(0% 100%, 2% 95%, 2% 15%, 98% 15%, 98% 95%, 100% 100%);
+    z-index: 300;
+    cursor: pointer;
+  }
+  .pocket-texture {
+    position: absolute;
+    width: 100%; height: 100%;
+    clip-path: polygon(0% 100%, 2% 95%, 2% 15%, 98% 15%, 98% 95%, 100% 100%);
+    z-index: 301;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><filter id="n"><feTurbulence baseFrequency="1.2" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 0.2  0 0 0 0 0.18  0 0 0 0 0.15  0 0 0 0.45 0"/></filter><rect width="120" height="120" filter="url(%23n)"/></svg>');
+    opacity: 0.28;
+    pointer-events: none;
+  }
+
+  /* Card wrapper — slides up out of envelope */
+  .card-wrapper {
+    position: absolute;
+    width: 100%;
+    top: 10px;
+    left: 0;
+    margin: 0;
+    padding-top: 0;
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+    clip-path: inset(0% -100% calc(100% - (var(--env-h) - 20px)) -100%);
+  }
+  .envelope-container.open .card-wrapper {
+    top: calc(-1 * (var(--card-h) + 60px));
+    padding-top: 36px;
+    overflow: visible;
+    clip-path: inset(0% -100% -20% -100%);
+    z-index: 350;
+  }
+
+  .card {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  .envelope-container.open .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+  }
+  .card-front { transform: translateZ(1px); }
+  .card-back  { transform: rotateY(180deg) translateZ(1px); }
+
+  .card-face-inner {
+    position: absolute; inset: 0;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #f7f3ea;
+    box-shadow: -6px 14px 18px rgba(0, 0, 0, 0.4);
+  }
+  .card-face-inner img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .card-face-inner::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(at 50% 100%, rgba(255,255,255,0.2), rgba(255,255,255,0));
+    background-size: cover;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* ============= PALETTES ============= */
+  .red {
+    --closed-color: #b11f31;
+    --open-color:   #7a0f1d;
+    --hover-color:  #c73348;
+    --side-color:   #8a0f1f;
+    --bottom-color: #a8192a;
+    --back-color:   #991628;
+  }
+  .white {
+    --closed-color: #f4eee0;
+    --open-color:   #c8b98d;
+    --hover-color:  #fbf6e8;
+    --side-color:   #ddd2b6;
+    --bottom-color: #ebe1c7;
+    --back-color:   #e2d6b9;
+  }
+
+  /* ============= LABEL ============= */
+  .envelope-label {
+    text-align: center;
+    margin: 18px auto 0;
+    transition: opacity 0.4s;
+  }
+  .envelope-outer.active .envelope-label { opacity: 0; pointer-events: none; }
+  .envelope-label .title {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 22px;
+    color: #c8b9a0;
+    display: block;
+  }
+  .envelope-label .date {
+    display: block;
+    margin-top: 2px;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 14px;
+    color: #a59c88;
+    letter-spacing: 0.06em;
+  }
+  .envelope-label .hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px;
+    color: #7a7164;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* ============= CONTROLS ============= */
+  .backdrop {
+    position: fixed; inset: 0;
+    background: rgba(8, 6, 10, 0);
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+    z-index: 40;
+    pointer-events: none;
+    transition: background 0.6s ease, backdrop-filter 0.6s ease;
+  }
+  .backdrop.active {
+    background: rgba(8, 6, 10, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    pointer-events: auto;
+  }
+
+  .close-btn {
+    position: fixed;
+    top: 22px; right: 22px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(232, 207, 134, 0.4);
+    background: rgba(20, 14, 18, 0.6);
+    color: #e8cf86;
+    font-size: 22px; line-height: 1;
+    cursor: pointer;
+    z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease 0.5s, transform 0.2s ease;
+    display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 300;
+  }
+  .close-btn.visible { opacity: 1; pointer-events: auto; }
+  .close-btn:hover { transform: scale(1.08); background: rgba(40, 28, 34, 0.72); }
+
+  .bottom-hint {
+    position: fixed;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #a59c88;
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease 0.8s;
+    text-align: center;
+  }
+  .bottom-hint.visible { opacity: 0.8; }
+
+  /* Dim the inactive envelope while one is open */
+  .has-open .envelope-outer:not(.active) {
+    opacity: 0.2;
+    filter: blur(1.5px);
+    pointer-events: none;
+    transition: opacity 0.4s, filter 0.4s;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>We&rsquo;d love you to celebrate with us!</h1>
+  <p>Tap an envelope to open</p>
+</header>
+
+<div class="stage" data-stage>
+
+  <!-- RED ENVELOPE -->
+  <div class="envelope-outer">
+    <div class="envelope-positioner">
+      <div class="envelope-container red" data-envelope>
+        <div class="flap"></div>
+        <div class="flap-texture"></div>
+        <div class="side-left"></div>
+        <div class="side-right"></div>
+        <div class="pocket"></div>
+        <div class="pocket-texture"></div>
+        <div class="envelope-back"></div>
+        <div class="card-wrapper">
+          <div class="card" data-card>
+            <div class="card-face card-front">
+              <div class="card-face-inner"><img src="1.png" alt="Invitation front" /></div>
+            </div>
+            <div class="card-face card-back">
+              <div class="card-face-inner"><img src="2.png" alt="Invitation back" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="envelope-label">
+      <span class="title">Tea Ceremony</span>
+      <span class="date">9 Oct 2026</span>
+      <span class="hint">tap to open</span>
+    </div>
+  </div>
+
+  <!-- WHITE ENVELOPE -->
+  <div class="envelope-outer">
+    <div class="envelope-positioner">
+      <div class="envelope-container white" data-envelope>
+        <div class="flap"></div>
+        <div class="flap-texture"></div>
+        <div class="side-left"></div>
+        <div class="side-right"></div>
+        <div class="pocket"></div>
+        <div class="pocket-texture"></div>
+        <div class="envelope-back"></div>
+        <div class="card-wrapper">
+          <div class="card" data-card>
+            <div class="card-face card-front">
+              <div class="card-face-inner"><img src="3.png" alt="Invitation front" /></div>
+            </div>
+            <div class="card-face card-back">
+              <div class="card-face-inner"><img src="4.png" alt="Invitation back" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="envelope-label">
+      <span class="title">Party</span>
+      <span class="date">10 Oct 2026</span>
+      <span class="hint">tap to open</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="backdrop" data-backdrop></div>
+<button class="close-btn" data-close aria-label="Close">&times;</button>
+<div class="bottom-hint" data-hint>tap card to flip &middot; tap outside to close</div>
+
+<script>
+  const stage     = document.querySelector('[data-stage]');
+  const envelopes = document.querySelectorAll('[data-envelope]');
+  const backdrop  = document.querySelector('[data-backdrop]');
+  const closeBtn  = document.querySelector('[data-close]');
+  const hint      = document.querySelector('[data-hint]');
+
+  function openEnvelope(envelope) {
+    envelopes.forEach((e) => {
+      if (e !== envelope) {
+        e.classList.remove('open');
+        e.querySelector('[data-card]').classList.remove('flipped');
+        e.closest('.envelope-outer').classList.remove('active');
+      }
+    });
+
+    const outer = envelope.closest('.envelope-outer');
+    outer.classList.add('active');
+    envelope.classList.add('open');
+    stage.classList.add('has-open');
+    backdrop.classList.add('active');
+    closeBtn.classList.add('visible');
+    hint.classList.add('visible');
+
+    // Smoothly scroll the envelope into view so the emerging card is visible
+    setTimeout(() => {
+      outer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
+
+  function closeAll() {
+    envelopes.forEach((e) => {
+      e.classList.remove('open');
+      e.querySelector('[data-card]').classList.remove('flipped');
+      e.closest('.envelope-outer').classList.remove('active');
+    });
+    stage.classList.remove('has-open');
+    backdrop.classList.remove('active');
+    closeBtn.classList.remove('visible');
+    hint.classList.remove('visible');
+  }
+
+  envelopes.forEach((envelope) => {
+    const card = envelope.querySelector('[data-card]');
+
+    envelope.addEventListener('click', (e) => {
+      if (envelope.classList.contains('open')) {
+        if (e.target.closest('[data-card]')) {
+          card.classList.toggle('flipped');
+        }
+        return;
+      }
+      openEnvelope(envelope);
+    });
+  });
+
+  backdrop.addEventListener('click', closeAll);
+  closeBtn.addEventListener('click', closeAll);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAll();
+  });
+</script>
+
+</body>
+</html>
