@@ -72,11 +72,17 @@
 
   @media (max-width: 520px) {
     .envelope-outer {
-      --env-w: min(420px, calc(100vw - 40px));
+      --env-w: min(360px, calc(100vw - 60px));
       --env-h: calc(0.714 * var(--env-w));
       --card-w: calc(var(--env-w) - 60px);
       --card-h: calc(var(--card-w) * 1.4);  /* 7/5 */
     }
+    /* When open on mobile, the card scales up to nearly fill the viewport */
+    .envelope-container.open {
+      --open-scale: min(1.7, calc((100vw - 24px) / var(--card-w)));
+    }
+    /* Allow the scaled card to extend past the envelope's bounding box */
+    .envelope-outer.active { overflow: visible; }
   }
 
   /* EnvelopePositioner */
@@ -244,8 +250,10 @@
     -webkit-transform-style: preserve-3d;
     transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    transform-origin: center center;
   }
-  .envelope-container.open .card.flipped { transform: rotateY(180deg); }
+  .envelope-container.open .card { transform: scale(var(--open-scale, 1)); }
+  .envelope-container.open .card.flipped { transform: scale(var(--open-scale, 1)) rotateY(180deg); }
 
   .card-face {
     position: absolute; inset: 0;
